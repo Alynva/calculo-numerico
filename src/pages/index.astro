@@ -5,31 +5,40 @@ import Card from '../components/Card.astro';
 
 <Layout title="Cálculo Numérico">
 	<main>
-		<h1>Welcome to <span class="text-gradient">Astro</span></h1>
+		<h1>Bem-vindo ao <span class="text-gradient">Cálculo Numérico</span></h1>
 		<p class="instructions">
-			To get started, open the directory <code>src/pages</code> in your project.<br />
-			<strong>Code Challenge:</strong> Tweak the "Welcome to Astro" message above.
+			O Cálculo Numérico é uma área da Matemática que utiliza métodos numéricos para resolver problemas matemáticos por meio de <strong>computadores</strong>. Neste projeto, exploraremos tópicos como solução de sistemas de equações lineares, localização de raízes, interpolação polinomial, integração numérica e resolução numérica de equações diferenciais.
 		</p>
 		<ul role="list" class="link-card-grid">
 			<Card
-				href="https://docs.astro.build/"
-				title="Documentation"
-				body="Learn how Astro works and explore the official API docs."
+				href="#"
+				title="Erros em processos numéricos"
+				body="Erro absoluto, erro relativo, erro de truncamento e erro de arredondamento."
 			/>
 			<Card
-				href="https://astro.build/integrations/"
-				title="Integrations"
-				body="Supercharge your project with new frameworks and libraries."
+				href="#"
+				title="Solução numérica de sistemas de equações lineares"
+				body="Métodos diretos (eliminação gaussiana, fatoração LU), métodos iterativos (Jacobi, Gauss-Seidel)."
 			/>
 			<Card
-				href="https://astro.build/themes/"
-				title="Themes"
-				body="Explore a galaxy of community-built starter themes."
+				href="#"
+				title="Solução numérica de equações"
+				body="Localização de raízes, método da bisseção, método da posição falsa, aproximações sucessivas, método de Newton, método da secante."
 			/>
 			<Card
-				href="https://astro.build/chat/"
-				title="Community"
-				body="Come say hi to our amazing Discord community. ❤️"
+				href="#"
+				title="Interpolação e aproximação de funções"
+				body="Interpolação polinomial (Lagrange e Newton), estudo do erro na interpolação."
+			/>
+			<Card
+				href="#"
+				title="Integração numérica"
+				body="Regras dos trapézios, regras de Simpson e estudo do erro."
+			/>
+			<Card
+				href="#"
+				title="Solução numérica de equações diferenciais ordinárias"
+				body="Método de Euler, métodos de série de Taylor, métodos de Runge-Kutta, métodos de passo múltiplo (implícitos e explícitos), métodos de previsão correção. Aplicação dos métodos estudados para equações de ordem superior."
 			/>
 		</ul>
 	</main>
@@ -39,7 +48,7 @@ import Card from '../components/Card.astro';
 	main {
 		margin: auto;
 		padding: 1.5rem;
-		max-width: 60ch;
+		max-width: 700px;
 	}
 	h1 {
 		font-size: 3rem;
