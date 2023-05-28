@@ -10,6 +10,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^2.4.1"
+    "astro": "^2.4.1",
+    "mathjax": "^3.2.2",
+    "mathjs": "^11.8.0"
   }
 }
