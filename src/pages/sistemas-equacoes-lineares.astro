@@ -1,0 +1,148 @@
+---
+import LetsPlay from '../components/LetsPlay.astro';
+import Sistemas from '../components/Sistemas.astro';
+import Layout from '../layouts/Layout.astro';
+
+---
+<script is:inline type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML&locale=pt-br"></script>
+<Layout title="Solução numérica de sistemas de equações lineares">
+	<main>
+		<h1 class="text-gradient"><a href="/calculo-numerico/">Cálculo Numérico</a></h1>
+		<h2>Solução numérica de sistemas de equações lineares</h2>
+		<div class="instructions">
+			<h3>Métodos diretos</h3>
+			<p>Os métodos diretos são técnicas utilizadas na solução numérica de sistemas de equações lineares que visam encontrar a solução exata do sistema. Entre esses métodos, destacam-se a eliminação gaussiana e a fatoração LU.</p>
+			<h4>Eliminação gaussiana</h4>
+			<p>A eliminação gaussiana é um procedimento que transforma o sistema original em um sistema triangular equivalente, por meio de operações elementares, facilitando a obtenção da solução.</p>
+			<h4>Fatoração LU</h4>
+			<p>Já a fatoração LU divide a matriz do sistema em dois fatores, uma matriz triangular inferior e uma matriz triangular superior, permitindo uma resolução mais eficiente para sistemas com várias soluções.</p>
+			<h3>Métodos iterativos</h3>
+			<p>Os métodos iterativos são abordagens utilizadas para a solução numérica de sistemas de equações lineares, em que a solução é aproximada por meio de iterações sucessivas. Dois métodos iterativos comuns são o método de Jacobi e o método de Gauss-Seidel.</p>
+			<h4>Jacobi</h4>
+			<p>O método de Jacobi parte de uma aproximação inicial e atualiza cada componente da solução utilizando a média ponderada dos valores anteriores.</p>
+			<h4>Gauss-Seidel</h4>
+			<p>Já o método de Gauss-Seidel utiliza os valores atualizados à medida que são calculados, permitindo uma convergência mais rápida. Esses métodos iterativos são úteis em sistemas grandes ou esparsos, onde os métodos diretos podem ser computacionalmente custosos.</p>
+		</div>
+		<LetsPlay>
+			<div slot="input">
+				<span class="field-name">Método:</span>
+				<div class="radio-field">
+					<input type="radio" name="method" id="gauss" value="gauss" checked>
+					<label for="gauss">Eliminação gaussiana</label>
+				</div>
+			</div>
+			<div slot="input">
+				<span class="field-name">Tamanho:</span>
+				<input type="number" name="size" id="size" value="3" step=1 min=2 max=10>
+			</div>
+			<div slot="input">
+				<span class="field-name">Sistema:</span>
+				<Sistemas />
+			</div>
+			<div slot="input">
+				<span class="field-name">Modo:</span>
+				<div class="radio-field">
+					<input type="radio" name="mode" id="truncar" value="truncar">
+					<label for="truncar">Truncar</label>
+					<input type="radio" name="mode" id="arredondar" value="arredondar" checked>
+					<label for="arredondar">Arredondar</label>
+				</div>
+			</div>
+			<div slot="input">
+				<span class="field-name">Precisão:</span>
+				<input type="number" name="precision" id="precision" value="3" step=1 min=1 max=100>
+			</div>
+
+			<div slot="output" class="display" id="real">
+				<span class="value"></span>
+				<span class="text">Real</span>
+			</div>
+			<div slot="output" class="display" id="calculated">
+				<span class="value shakeY"></span>
+				<span class="text">Calculado</span>
+			</div>
+			<div slot="output" class="display" id="erro_abs">
+				<span class="value"></span>
+				<span class="text">Erro Absoluto</span>
+			</div>
+			<div slot="output" class="display" id="erro_rel">
+				<span class="value"></span>
+				<span class="text">Erro Relativo</span>
+			</div>
+		</LetsPlay>
+	</main>
+</Layout>
+
+<style is:global>
+	.letsplay .output .display .value {
+		font-size: 0.9em;
+	}
+</style>
+
+<script>
+	import truncar from '../utils/truncar'
+	import arredondar from '../utils/arredondar'
+
+	let EXPRESSAO = '1.2345 + 686.9'
+	let LIMIT = 2
+	const MODES = {
+		ARREDONDAR: 0,
+		TRUNCAR: 1,
+	}
+	let MODE = MODES.TRUNCAR
+
+	function cap(v: number) {
+		if (MODE === MODES.ARREDONDAR) {
+			return arredondar(v, LIMIT)
+		} else if (MODE === MODES.TRUNCAR) {
+			return truncar(v, LIMIT)
+		}
+		return v
+	}
+
+	
+	const add = (a: number, b: number) => cap(cap(a) + cap(b))
+	const subtract = (a: number, b: number) => cap(cap(a) - cap(b))
+	const multiply = (a: number, b: number) => cap(cap(a) * cap(b))
+	const divide = (a: number, b: number) => cap(cap(a) / cap(b))
+
+	document.querySelectorAll("form input")
+		?.forEach(elem => {
+			elem.addEventListener("change", evt => handleChange((evt.target as HTMLFormElement)?.form))
+			elem.addEventListener("keyup", evt => handleChange((evt.target as HTMLFormElement)?.form))
+		})
+
+	function handleChange(form?: HTMLFormElement) {
+		if (!form) form = document.querySelector("form") || undefined
+		if (!form) return
+
+		const data = Object.fromEntries(new FormData(form))
+		const { system, mode, precision } = data
+
+		MODE = MODES[mode.toString().toUpperCase() as "ARREDONDAR" | "TRUNCAR"]
+		LIMIT = Number(precision.toString())
+
+	}
+	handleChange()
+
+	function setValue(selector: string, value: string) {
+		const elem = document.querySelector(selector) as HTMLElement
+
+		if (elem) elem.innerText = value
+	}
+	function animate(selector: string) {
+		const elem = document.querySelector(selector) as HTMLElement
+
+		if (!elem) return
+
+		elem.classList.remove("shakeY")
+		elem.classList.add("shakeY")
+
+		function removeAnimation() {
+			elem.classList.remove("shakeY")
+			elem.removeEventListener("animationend", removeAnimation)
+		}
+		elem.addEventListener("animationend", removeAnimation)
+	}
+</script>
+

@@ -1,0 +1,299 @@
+---
+
+---
+<table class="sistema-container">
+	<tbody>
+		<tr>
+			<td>
+				<input type="number" value="1">
+			</td>
+			<td>
+				<span class="math">x<sub>1</sub></span>
+			</td>
+			<td>+</td>
+			<td>
+				<input type="number" value="1">
+			</td>
+			<td>
+				<span class="math">x<sub>2</sub></span>
+			</td>
+			<td>+</td>
+			<td>
+				<input type="number" value="1">
+			</td>
+			<td>
+				<span class="math">x<sub>3</sub></span>
+			</td>
+			<td>=</td>
+			<td>
+				<input type="number" value="1">
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<style is:global>
+	.math {
+		font-family: serif;
+		font-style: italic;
+	}
+
+	input[type=number] {
+		width: 3em;
+		border-color: transparent;
+		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+		text-align: center;
+	}
+	.actions {
+		display: flex;
+		gap: 10px;
+	}
+	.actions > * {
+		flex: 1;
+	}
+</style>
+
+<script>
+	import truncar from '../utils/truncar'
+	import arredondar from '../utils/arredondar'
+
+	let LIMIT = 2
+	const MODES = {
+		ARREDONDAR: 0,
+		TRUNCAR: 1,
+	}
+	let MODE = MODES.TRUNCAR
+
+	const DEFAULT = {
+		A: [
+			[3.03, -12.1, 14],
+			[-3.03, 12.1, -7],
+			[6.11, -14.2, 21],
+		],
+		b: [
+			-119,
+			120,
+			-139,
+		]
+	}
+
+	function cap(v: number) {
+		if (MODE === MODES.ARREDONDAR) {
+			return arredondar(v, LIMIT)
+		} else if (MODE === MODES.TRUNCAR) {
+			return truncar(v, LIMIT)
+		}
+		return v
+	}
+
+	
+	const add = (a: number, b: number) => cap(cap(a) + cap(b))
+	const subtract = (a: number, b: number) => cap(cap(a) - cap(b))
+	const multiply = (a: number, b: number) => cap(cap(a) * cap(b))
+	const divide = (a: number, b: number) => cap(cap(a) / cap(b))
+
+	const tableContainer = document.querySelector(".sistema-container") as HTMLTableElement
+	const sizeInput = tableContainer
+		.closest("form")
+		?.querySelector("input[name=size]") as HTMLInputElement
+
+	tableContainer
+		.closest("form")
+		?.querySelectorAll("input")
+		?.forEach(elem => {
+			if (elem === sizeInput) return
+			elem.addEventListener("change", handleSystemChange)
+			elem.addEventListener("keyup", handleSystemChange)
+		})
+
+	sizeInput?.addEventListener("change", handleSizeChange)
+
+	function handleSizeChange() {
+		if (!sizeInput) return
+
+		updateTable(Number(sizeInput.value))
+		handleSystemChange()
+	}
+	handleSizeChange()
+
+	function updateTable(size: number) {
+		const body = tableContainer.querySelector("tbody") as HTMLElement
+		
+		body.innerHTML = ""
+
+		for (let i = 0; i < size; i++) {
+			const row = document.createElement("tr")
+			body.appendChild(row)
+
+			for (let j = 0; j < size; j++) {
+				if (j > 0) {
+					const plus = document.createElement("td")
+					plus.innerText = "+"
+					row.appendChild(plus)
+				}
+
+				const inputCol = document.createElement("td")
+				row.appendChild(inputCol)
+				const input = document.createElement("input")
+				inputCol.appendChild(input)
+				input.removeEventListener("change", handleSystemChange)
+				input.removeEventListener("keyup", handleSystemChange)
+				input.addEventListener("change", handleSystemChange)
+				input.addEventListener("keyup", handleSystemChange)
+				input.type = "number"
+				input.name = `${i}_${j}`
+				input.value = (DEFAULT.A[i]?.[j] || 0)+''
+
+				const xCol = document.createElement("td")
+				row.appendChild(xCol)
+				const xSpan = document.createElement("span")
+				xCol.appendChild(xSpan)
+				xSpan.classList.add("math")
+				xSpan.innerText = "x"
+				const xSub = document.createElement("sub")
+				xSpan.appendChild(xSub)
+				xSub.innerText = j+1+''
+			}
+
+			const equal = document.createElement("td")
+			equal.innerText = "="
+			row.appendChild(equal)
+
+			const inputCol = document.createElement("td")
+			row.appendChild(inputCol)
+			const input = document.createElement("input")
+			inputCol.appendChild(input)
+			input.removeEventListener("change", handleSystemChange)
+			input.removeEventListener("keyup", handleSystemChange)
+			input.addEventListener("change", handleSystemChange)
+			input.addEventListener("keyup", handleSystemChange)
+			input.type = "number"
+			input.name = `equal_${i}`
+			input.value = (DEFAULT.b[i] || 0)+''
+		}
+	}
+
+	function handleSystemChange() {
+		const form = tableContainer.closest("form") as HTMLFormElement
+
+		const data = Object.fromEntries(new FormData(form))
+		const { size, mode, precision } = data
+
+		const SIZE = Number(size)
+		MODE = MODES[mode.toString().toUpperCase() as "ARREDONDAR" | "TRUNCAR"]
+		LIMIT = Number(precision.toString())
+
+		console.log({data})
+
+		const { A, b } = reduceData(data, SIZE)
+
+		console.log({A,b})
+
+		const calculated = calcGauss(A, b)
+		setValue(".output #calculated .value", `$$\\begin{bmatrix}${calculated.join("\\\\")}\\end{bmatrix} $$`)
+		animate(".output #calculated .value")
+
+		MODE = -1
+		const real = calcGauss(A, b)
+		setValue(".output #real .value", `$$\\begin{bmatrix}${real.join("\\\\")}\\end{bmatrix} $$`)
+
+		const errorAbsolute = new Array(real.length)
+			.fill(0)
+			.map((_, i) => Math.abs(real[i] - calculated[i]))
+		setValue(".output #erro_abs .value", `$$\\begin{bmatrix}${errorAbsolute.join("\\\\")}\\end{bmatrix} $$`)
+
+		const errorRelative = new Array(real.length)
+			.fill(0)
+			.map((_, i) => errorAbsolute[i] / Math.abs(real[i]))
+		setValue(".output #erro_rel .value", `$$\\begin{bmatrix}${errorRelative.join("\\\\")}\\end{bmatrix} $$`)
+
+		window.MathJax.Hub.Queue(['Typeset', window.MathJax.Hub]);
+	}
+	handleSystemChange()
+
+	function reduceData(data: any, SIZE: number) {
+		const A = new Array(SIZE)
+			.fill(0)
+			.map(() => new Array(SIZE)) as number[][]
+		const b = new Array(SIZE) as number[]
+
+		for (let i = 0; i < SIZE; i++) {
+			b[i] = Number(data[`equal_${i}`])
+
+			for (let j = 0; j < SIZE; j++) {
+				A[i][j] = Number(data[`${i}_${j}`])
+			}
+		}
+
+		return { A, b }
+	}
+
+	function calcGauss(_A: number[][], _b: number[]) {
+		let A = JSON.parse(JSON.stringify(_A)) as typeof _A
+		let b = JSON.parse(JSON.stringify(_b)) as typeof _b
+		for (let iPivot = 0; iPivot < A.length - 1; iPivot++) {
+			maxPivot(A, b, iPivot)
+			const pivot = A[iPivot][iPivot]
+
+			for (let i = iPivot + 1; i < A[iPivot].length; i++) {
+				const m = A[i][iPivot] / pivot
+				for (let j = iPivot + 1; j < A[iPivot].length; j++) {
+					A[i][j] = subtract(A[i][j], multiply(m, A[iPivot][j]))
+				}
+				b[i] = subtract(b[i], multiply(m, b[iPivot]))
+				A[i][iPivot] = 0
+			}
+		}
+
+		const x = new Array(A.length).fill(0) as number[]
+
+		for (let i = x.length - 1; i >= 0; i--) {
+			const val = A[i].reduce((prev, cur, idx) => subtract(prev, multiply(cur, idx === i ? 0 : x[idx])), b[i])
+			x[i] = divide(val, A[i][i])
+		}
+
+		return x
+	}
+
+	function maxPivot(A: number[][], b: number[], j: number) {
+		let max = 0
+		let idx = -1
+		for (let i = 0; i < A.length; i++) {
+			if (A[i][j] > max) {
+				max = A[i][j]
+				idx = i
+			}
+		}
+
+		if (idx !== j) {
+			let prev = A[j]
+			A[j] = A[idx]
+			A[idx] = prev
+
+			let prev2 = b[j]
+			b[j] = b[idx]
+			b[idx] = prev2
+		}
+	}
+
+	function setValue(selector: string, value: string) {
+		const elem = document.querySelector(selector) as HTMLElement
+
+		if (elem) elem.innerText = value
+	}
+	function animate(selector: string) {
+		const elem = document.querySelector(selector) as HTMLElement
+
+		if (!elem) return
+
+		elem.classList.remove("shakeY")
+		elem.classList.add("shakeY")
+
+		function removeAnimation() {
+			elem.classList.remove("shakeY")
+			elem.removeEventListener("animationend", removeAnimation)
+		}
+		elem.addEventListener("animationend", removeAnimation)
+	}
+
+</script>

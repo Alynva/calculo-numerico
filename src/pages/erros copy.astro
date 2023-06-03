@@ -1,8 +1,8 @@
 ---
-import LetsPlay from '../components/LetsPlay.astro';
 import Layout from '../layouts/Layout.astro';
 
 ---
+<script is:inline type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML&locale=pt-br"></script>
 
 <Layout title="Erros em processos numéricos">
 	<main>
@@ -20,52 +20,57 @@ import Layout from '../layouts/Layout.astro';
 			<h3>Erro de arredondamento</h3>
 			<p>Surge devido à limitação na representação dos números reais em sistemas computacionais, que utilizam uma quantidade finita de bits para armazenar valores. Quando números reais são arredondados para se adequarem à representação disponível, ocorrem pequenas discrepâncias entre o número real e sua representação aproximada. O erro de arredondamento pode se acumular ao longo de operações matemáticas, afetando a precisão dos resultados finais. Estratégias de arredondamento são aplicadas para minimizar esse tipo de erro e controlar sua propagação.</p>
 		</div>
-		<LetsPlay>
-			<div slot="input">
-				<span class="field-name">Expressão:</span>
-				<div class="help-container">
-					<input type="text" name="expression" id="expression" value="sqrt(25) - log(10000, 3 + 7) * sin(pi / 4)">
-					<span>Referência: <a href="https://mathjs.org/docs/reference/constants.html#constant-reference" target="_blank" rel="noopener noreferrer">constantes</a> • <a href="https://mathjs.org/docs/reference/functions.html#arithmetic-functions" target="_blank" rel="noopener noreferrer">funções</a></span>
+		<div class="instructions letsplay">
+			<div class="input">
+				<form>
+					<div>
+						<span class="field-name">Expressão:</span>
+						<div class="help-container">
+							<input type="text" name="expression" id="expression" value="sqrt(25) - log(10000, 3 + 7) * sin(pi / 4)">
+							<span>Referência: <a href="https://mathjs.org/docs/reference/constants.html#constant-reference" target="_blank" rel="noopener noreferrer">constantes</a> • <a href="https://mathjs.org/docs/reference/functions.html#arithmetic-functions" target="_blank" rel="noopener noreferrer">funções</a></span>
+						</div>
+					</div>
+					<div>
+						<span class="field-name">Modo:</span>
+						<div class="radio-field">
+							<input type="radio" name="mode" id="truncar" value="truncar" checked>
+							<label for="truncar">Truncar</label>
+							<input type="radio" name="mode" id="arredondar" value="arredondar">
+							<label for="arredondar">Arredondar</label>
+						</div>
+					</div>
+					<div>
+						<span class="field-name">Precisão:</span>
+						<input type="number" name="precision" id="precision" value="5" step=1 min=1 max=100>
+					</div>
+				</form>
+			</div>
+			<hr>
+			<div class="output">
+				<div class="display" id="real">
+					<span class="value"></span>
+					<span class="text">Real</span>
+				</div>
+				<div class="display" id="calculated">
+					<span class="value shakeY"></span>
+					<span class="text">Calculado</span>
+				</div>
+				<div class="display" id="erro_abs">
+					<span class="value"></span>
+					<span class="text">Erro Absoluto</span>
+				</div>
+				<div class="display" id="erro_rel">
+					<span class="value"></span>
+					<span class="text">Erro Relativo</span>
 				</div>
 			</div>
-			<div slot="input">
-				<span class="field-name">Modo:</span>
-				<div class="radio-field">
-					<input type="radio" name="mode" id="truncar" value="truncar" checked>
-					<label for="truncar">Truncar</label>
-					<input type="radio" name="mode" id="arredondar" value="arredondar">
-					<label for="arredondar">Arredondar</label>
-				</div>
-			</div>
-			<div slot="input">
-				<span class="field-name">Precisão:</span>
-				<input type="number" name="precision" id="precision" value="5" step=1 min=1 max=100>
-			</div>
-
-			<div slot="output" class="display" id="real">
-				<span class="value"></span>
-				<span class="text">Real</span>
-			</div>
-			<div slot="output" class="display" id="calculated">
-				<span class="value shakeY"></span>
-				<span class="text">Calculado</span>
-			</div>
-			<div slot="output" class="display" id="erro_abs">
-				<span class="value"></span>
-				<span class="text">Erro Absoluto</span>
-			</div>
-			<div slot="output" class="display" id="erro_rel">
-				<span class="value"></span>
-				<span class="text">Erro Relativo</span>
-			</div>
-		</LetsPlay>
+		</div>
 	</main>
 </Layout>
 
 <script>
 	import { all, create, evaluateDependencies } from 'mathjs'
 	import truncar from '../utils/truncar'
-	import arredondar from '../utils/arredondar'
 
 	let EXPRESSAO = '1.2345 + 686.9'
 	let LIMIT = 2
@@ -84,7 +89,9 @@ import Layout from '../layouts/Layout.astro';
 		return v
 	}
 
-	
+	function arredondar(v: number, limit: number) {
+		return Number(v.toPrecision(limit))
+	}
 	const add = (a: number, b: number) => cap(cap(a) + cap(b))
 	const subtract = (a: number, b: number) => cap(cap(a) - cap(b))
 	const multiply = (a: number, b: number) => cap(cap(a) * cap(b))
@@ -93,6 +100,9 @@ import Layout from '../layouts/Layout.astro';
 	const math = create(all)
 
 	math.import({ add, subtract, multiply, divide }, { override: true })
+
+	document.querySelector("form")
+		?.addEventListener("submit", evt => evt.preventDefault())
 
 	document.querySelectorAll("form input")
 		?.forEach(elem => {
@@ -147,3 +157,111 @@ import Layout from '../layouts/Layout.astro';
 	}
 </script>
 
+<style>
+	.letsplay {
+		--radius: 3px;
+	}
+	.letsplay, .letsplay .input form, .letsplay .output {
+		display: flex;
+		flex-direction: column;
+	}
+	.letsplay .input form {
+		gap: 5px;
+	}
+	.letsplay .input form > div {
+		display: flex;
+		align-items: center;
+		gap: 15px;
+	}
+	.letsplay .input .field-name {
+		width: 100px;
+		text-align: right;
+	}
+	.radio-field {
+		display: flex;
+	}
+	.radio-field input[type=radio] {
+		display: none;
+	}
+	.radio-field label, .letsplay input {
+		padding: 4px 7px;
+		font-size: 1em;
+		font-weight: 100;
+	}
+	.radio-field label {
+		cursor: pointer;
+		background-color: #ccc;
+		color: rgb(var(--accent));
+	}
+	.radio-field label:first-of-type { border-radius: var(--radius) 0 0 var(--radius); }
+	.radio-field label:last-of-type { border-radius: 0 var(--radius) var(--radius) 0; }
+
+	.radio-field input[type=radio]:checked + label {
+		background-color: rgb(var(--accent));
+		color: white
+	}
+	.letsplay input {
+		border-radius: var(--radius);
+		border: 1px solid rgb(var(--accent));
+	}
+	.letsplay .input .help-container {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+	}
+	.letsplay .input .help-container span {
+		font-size: .8em;
+	}
+	.letsplay input#expression {
+		flex: 1;
+	}
+	.letsplay .output {
+		flex-direction: row;
+		justify-content: center;
+		gap: 50px;
+	}
+	.letsplay .output .display {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.letsplay .output .display .value {
+		font-weight: bolder;
+		font-size: 1.5em;
+		color: rgb(var(--accent));
+	}
+	.letsplay .output .display .text {
+		color: rgb(var(--accent));
+	}
+	.letsplay .output {
+		flex-flow: wrap;
+	}
+	hr {
+		width: 100%;
+	}
+
+
+	@keyframes shakeY {
+		0%,to {
+			-webkit-transform: translateZ(0);
+			transform: translateZ(0)
+		}
+
+		10%,30%,50%,70%,90% {
+			-webkit-transform: translate3d(0,-10px,0);
+			transform: translate3d(0,-10px,0)
+		}
+
+		20%,40%,60%,80% {
+			-webkit-transform: translate3d(0,10px,0);
+			transform: translate3d(0,10px,0)
+		}
+	}
+
+	.shakeY {
+		animation-name: shakeY;
+
+		animation-duration: 1s;
+		animation-fill-mode: both
+	}
+</style>

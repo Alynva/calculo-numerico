@@ -1,0 +1,133 @@
+---
+---
+<div class="instructions letsplay" data-letsplay-container>
+	<div class="input">
+		<form data-form-preventdefault>
+			<slot name="input" />
+		</form>
+	</div>
+	<hr>
+	<div class="output">
+		<slot name="output" />
+	</div>
+</div>
+
+<script>
+</script>
+
+
+<style is:global>
+	.letsplay {
+		--radius: 3px;
+	}
+	.letsplay, .letsplay .input form, .letsplay .output {
+		display: flex;
+		flex-direction: column;
+	}
+	.letsplay .input form {
+		gap: 5px;
+		overflow: auto;
+	}
+	.letsplay .input form > div {
+		display: flex;
+		align-items: center;
+		gap: 15px;
+	}
+	.letsplay .input .field-name {
+		min-width: 100px;
+		text-align: right;
+	}
+	.radio-field {
+		display: flex;
+	}
+	.radio-field input[type=radio] {
+		display: none;
+	}
+	.radio-field label, .letsplay input {
+		padding: 4px 7px;
+		font-size: 1em;
+		font-weight: 100;
+	}
+	.radio-field label {
+		cursor: pointer;
+		background-color: #ccc;
+		color: rgb(var(--accent));
+	}
+	.radio-field label:first-of-type {
+		border-top-left-radius: var(--radius);
+		border-bottom-left-radius: var(--radius);
+	}
+	.radio-field label:last-of-type {
+		border-top-right-radius: var(--radius);
+		border-bottom-right-radius: var(--radius);
+	}
+
+	.radio-field input[type=radio]:checked + label {
+		background-color: rgb(var(--accent));
+		color: white
+	}
+	.letsplay input {
+		border-radius: var(--radius);
+		border: 1px solid rgb(var(--accent));
+	}
+	.letsplay .input .help-container {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+	}
+	.letsplay .input .help-container span {
+		font-size: .8em;
+	}
+	.letsplay input#expression {
+		flex: 1;
+	}
+	.letsplay .output {
+		flex-direction: row;
+		justify-content: center;
+		gap: 50px;
+	}
+	.letsplay .output .display {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.letsplay .output .display .value {
+		font-weight: bolder;
+		font-size: 1.5em;
+		color: rgb(var(--accent));
+	}
+	.letsplay .output .display .text {
+		color: rgb(var(--accent));
+	}
+	.letsplay .output {
+		flex-flow: wrap;
+	}
+	hr {
+		width: 100%;
+	}
+
+
+	@keyframes shakeY {
+		0%,to {
+			-webkit-transform: translateZ(0);
+			transform: translateZ(0)
+		}
+
+		10%,30%,50%,70%,90% {
+			-webkit-transform: translate3d(0,-10px,0);
+			transform: translate3d(0,-10px,0)
+		}
+
+		20%,40%,60%,80% {
+			-webkit-transform: translate3d(0,10px,0);
+			transform: translate3d(0,10px,0)
+		}
+	}
+
+	.shakeY {
+		animation-name: shakeY;
+
+		animation-duration: 1s;
+		animation-fill-mode: both
+	}
+</style>
