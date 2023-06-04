@@ -231,9 +231,12 @@
 	function calcGauss(_A: number[][], _b: number[]) {
 		let A = JSON.parse(JSON.stringify(_A)) as typeof _A
 		let b = JSON.parse(JSON.stringify(_b)) as typeof _b
-		for (let iPivot = 0; iPivot < A.length - 1; iPivot++) {
+		for (let iPivot = 0; iPivot < A.length; iPivot++) {
 			maxPivot(A, b, iPivot)
 			const pivot = A[iPivot][iPivot]
+
+			if (pivot == 0)
+				return ['-']
 
 			for (let i = iPivot + 1; i < A[iPivot].length; i++) {
 				const m = A[i][iPivot] / pivot
@@ -256,11 +259,11 @@
 	}
 
 	function maxPivot(A: number[][], b: number[], j: number) {
-		let max = 0
+		let max = -1
 		let idx = -1
-		for (let i = 0; i < A.length; i++) {
-			if (A[i][j] > max) {
-				max = A[i][j]
+		for (let i = j; i < A.length; i++) {
+			if (Math.abs(A[i][j]) > max) {
+				max = Math.abs(A[i][j])
 				idx = i
 			}
 		}
